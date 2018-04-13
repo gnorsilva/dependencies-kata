@@ -53,4 +53,17 @@ RSpec.describe Dependencies::Parser do
     expect {subject.parse_job_list(jobs)}.to raise_error('A job cannot depend on itself')
   end
 
+  it 'should raise an error if there is a cyclical dependency' do
+    jobs = <<~JOBS
+      a =>
+      b => c
+      c => f
+      d => a
+      e =>
+      f => b
+    JOBS
+
+    expect {subject.parse_job_list(jobs)}.to raise_error('Cyclical dependency')
+  end
+
 end

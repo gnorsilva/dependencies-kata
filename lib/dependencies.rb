@@ -34,6 +34,10 @@ module Dependencies
       upstream_job = @jobs.fetch(upstream) {|key| @jobs[key] = Job.new(upstream)}
       downstream_job = @jobs.fetch(downstream) {|key| @jobs[key] = Job.new(downstream)}
 
+      if cyclical_dependency?(downstream_job, upstream_job)
+        raise 'Cyclical dependency'
+      end
+
       if downstream_job.independent?
         @independent_jobs.delete(downstream)
       end
@@ -59,6 +63,16 @@ module Dependencies
 
     private
 
+    def cyclical_dependency?(downstream_job, upstream_job)
+      if not upstream_job
+        false
+      elsif downstream_job == upstream_job
+        true
+      else
+        cyclical_dependency?(downstream_job, upstream_job.upstream)
+      end
+    end
+
     def traverse_jobs(jobs)
       jobs.inject('') do |acc, job|
         acc + job.name + traverse_jobs(job.dependencies)
@@ -69,24 +83,25 @@ module Dependencies
   class Job
     attr_reader :name
     attr_reader :dependencies
+    attr_reader :upstream
 
     def initialize(name)
       @name = name
       @dependencies = []
-      @parent = nil
+      @upstream = nil
     end
 
     def add_dependency(downstream_job)
       @dependencies << downstream_job
-      downstream_job.parent = self
+      downstream_job.upstream = self
     end
 
     def independent?
-      @parent.nil?
+      @upstream.nil?
     end
 
     protected
 
-    attr_writer :parent
+    attr_writer :upstream
   end
 end
