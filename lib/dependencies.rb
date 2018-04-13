@@ -12,7 +12,9 @@ module Dependencies
       job_lines.each do |line|
         left, right = line.split(' =>').map(&:strip)
 
-        if right
+        if left == right
+          raise 'A job cannot depend on itself'
+        elsif right
           tree.add_dependency(left, right)
         else
           tree.add_independent(left)

@@ -43,4 +43,14 @@ RSpec.describe Dependencies::Parser do
     expect(subject.parse_job_list(jobs)).to eq 'adfcbe'
   end
 
+  it 'should raise an error when a job depends on itself' do
+    jobs = <<~JOBS
+      a =>
+      b =>
+      c => c
+    JOBS
+
+    expect {subject.parse_job_list(jobs)}.to raise_error('A job cannot depend on itself')
+  end
+
 end
