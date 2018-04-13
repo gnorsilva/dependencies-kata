@@ -20,4 +20,14 @@ RSpec.describe Dependencies::Parser do
     expect(subject.parse_job_list(jobs)).to eq 'abc'
   end
 
+  it 'should parse a multiple job sequence with one dependency' do
+    jobs = <<~JOBS
+      a =>
+      b => c
+      c =>
+    JOBS
+
+    expect(subject.parse_job_list(jobs)).to eq 'acb'
+  end
+
 end
